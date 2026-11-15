@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>ACRUX Gym — Connection Test</title>
+  <style>
+    body {font-family:Arial,sans-serif;background:#243746;color:#fff;display:flex;align-items:center;justify-content:center;min-height:100vh;margin:0;padding:20px;box-sizing:border-box}
+    main {max-width:460px;width:100%;text-align:center}
+    button {padding:14px 22px;border:0;border-radius:10px;background:white;color:#243746;font-size:17px;font-weight:bold;cursor:pointer}
+    #result {margin-top:22px;line-height:1.6;white-space:pre-wrap}
+    iframe {display:none}
+  </style>
+</head>
+<body>
+<main>
+  <h1>ACRUX GYM</h1>
+  <p>Google Apps Script connection test</p>
+  <button id="testButton" type="button">Test Connection</button>
+  <div id="result" role="status" aria-live="polite">No test run yet.</div>
+</main>
+<iframe name="acruxApiResponse" id="acruxApiResponse" title="API response"></iframe>
+<form id="apiForm" method="POST" target="acruxApiResponse" action="https://script.google.com/macros/s/AKfycby5uiwIZfp8dS7SMcCJz2VqYUezFYy6k0vXgW9Xsk15vhYMy_dGcbvlrV3bDCRDR-2_/exec"></form>
+<script>
+(function () {
+  const result = document.getElementById('result');
+  const button = document.getElementById('testButton');
+  let waiting = false;
+  let timeoutId;
+  const allowedOrigins = new Set([
+    'https://script.google.com',
+    'https://script.googleusercontent.com'
+  ]);
+
+  window.addEventListener('message', function (event) {
+    if (!waiting || !allowedOrigins.has(event.origin)) return;
+    const data = event.data;
+    if (!data || data.status !== 'OK' || data.message !== 'ACRUX Check-In API is responding.') return;
+    waiting = false;
+    clearTimeout(timeoutId);
+    result.textContent = 'SUCCESS! ACRUX Check-In API responded.\n\nNo member or payment records were changed.';
+    button.disabled = false;
+  });
+
+  button.addEventListener('click', function () {
+    waiting = true;
+    button.disabled = true;
+    result.textContent = 'Testing connection…';
+    document.getElementById('apiForm').submit();
+    clearTimeout(timeoutId);
+    timeoutId = setTimeout(function () {
+      if (!waiting) return;
+      waiting = false;
+      button.disabled = false;
+      result.textContent = 'No confirmation received. Check the deployment URL, access settings, and Safari tracking restrictions.';
+    }, 15000);
+  });
+})();
+</script>
+</body>
+</html>
