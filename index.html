@@ -1,107 +1,35 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <title>ACRUX Gym | QR Scanner Test</title>
-  <style>
-    :root { color-scheme: dark; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
-    body { margin: 0; min-height: 100vh; background: #142532; color: white; display: grid; place-items: center; }
-    main { width: min(92vw, 460px); text-align: center; padding: 24px 0; }
-    h1 { margin-bottom: 0; letter-spacing: .08em; }
-    .tag { color: #aabac6; letter-spacing: .12em; font-size: 12px; margin-top: 4px; }
-    .preview { margin: 24px 0 12px; border: 2px solid #4a6777; border-radius: 16px; background: #071018; overflow: hidden; aspect-ratio: 4 / 3; position: relative; }
-    video { width: 100%; height: 100%; object-fit: cover; display: block; }
-    button { background: #d9e7eb; color: #142532; font-size: 16px; font-weight: 700; border: 0; padding: 15px 24px; border-radius: 10px; margin: 8px; cursor: pointer; }
-    button.secondary { background: transparent; border: 1px solid #8ba0ab; color: white; }
-    #status { color: #dce9ee; line-height: 1.5; min-height: 45px; overflow-wrap: anywhere; }
-    #result { color: #9ce8ba; overflow-wrap: anywhere; font-weight: 600; }
-    small { color: #9aaeb9; }
-  </style>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>ACRUX Gym | Check-In</title>
+<style>
+:root{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color-scheme:dark}*{box-sizing:border-box}body{margin:0;min-height:100dvh;background:#172a38;color:#fff;display:flex;align-items:center;justify-content:center;padding:18px}.app{width:min(100%,480px);background:#243746;border:1px solid #486071;border-radius:22px;padding:28px 22px;box-shadow:0 16px 50px #0a182450;text-align:center}h1{letter-spacing:.12em;font-size:32px;margin:4px 0}.tag{font-size:12px;letter-spacing:.2em;color:#c5d4df;margin-bottom:32px}h2{margin:0 0 8px}p{color:#d4e1e8;line-height:1.5}.menu{display:grid;gap:13px;margin:24px 0}.choice{display:flex;align-items:center;gap:15px;text-align:left;background:#fff;color:#243746;padding:20px;border:0;border-radius:14px;width:100%;font:inherit;cursor:pointer}.choice .symbol{font-size:27px}.choice b{display:block;font-size:17px}.choice small{display:block;color:#526878;margin-top:5px}.choice .arrow{margin-left:auto;font-size:24px}.screen{display:none}.screen.active{display:block}.button{background:#e0edf2;color:#1b3444;border:0;border-radius:11px;padding:14px 20px;font:inherit;font-weight:700;cursor:pointer;width:100%;margin-top:12px}.button.alt{background:transparent;color:#fff;border:1px solid #8aa1b0}.field{text-align:left;margin:16px 0}.field label{display:block;margin-bottom:7px;font-size:14px}.field input,.field textarea{display:block;width:100%;background:#fff;color:#172a38;border:0;border-radius:9px;padding:13px;font:inherit}.field textarea{min-height:80px;resize:vertical}.preview{aspect-ratio:4/3;background:#08151e;border:2px solid #617a8c;border-radius:15px;overflow:hidden;margin:18px 0;position:relative}.preview video{width:100%;height:100%;object-fit:cover}.preview::after{content:"";position:absolute;inset:16% 20%;border:2px solid #b9e6db;border-radius:10px;pointer-events:none}.message{min-height:42px;overflow-wrap:anywhere}.note{font-size:12px;color:#bacbd4}.success{color:#a5f1c5}.error{color:#ffbdba}button:focus-visible,input:focus-visible,textarea:focus-visible{outline:3px solid #92d9ee;outline-offset:3px}
+</style>
+<script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js" defer></script>
 </head>
-<body>
-<main>
-  <h1>ACRUX GYM</h1>
-  <div class="tag">STRENGTH FOR LIFE</div>
-  <h2>QR Scanner — Camera Test</h2>
-  <div class="preview"><video id="camera" autoplay muted playsinline></video></div>
-  <button id="start">Start Camera</button>
-  <button id="stop" class="secondary">Stop</button>
-  <p id="status" role="status">Tap Start Camera and allow camera access.</p>
-  <p id="result"></p>
-  <small>Testing only. No member details are sent or attendance recorded.</small>
+<body><main class="app">
+<header><h1>ACRUX GYM</h1><div class="tag">STRENGTH FOR LIFE</div></header>
+<section id="home" class="screen active"><h2>Welcome!</h2><p>Please select your check-in method.</p><div class="menu">
+<button class="choice" data-screen="qr"><span class="symbol">▣</span><span><b>Scan QR Code</b><small>Use your membership QR code</small></span><span class="arrow">›</span></button>
+<button class="choice" data-screen="member"><span class="symbol">#</span><span><b>Enter Member ID</b><small>Check in with your membership number</small></span><span class="arrow">›</span></button>
+<button class="choice" data-screen="guest"><span class="symbol">♙</span><span><b>Guest Check-In</b><small>Register for a Day Pass</small></span><span class="arrow">›</span></button></div></section>
+<section id="qr" class="screen"><h2>Scan QR Code</h2><p>Hold your QR code in front of the camera.</p><div class="preview"><video id="camera" autoplay playsinline muted></video></div><div id="scan-status" class="message" role="status">Camera starts when you tap Start Camera.</div><button id="start" class="button">Start Camera</button><button class="button alt back">Back to Home</button></section>
+<section id="member" class="screen"><h2>Enter Member ID</h2><form id="member-form"><div class="field"><label for="member-id">Member ID</label><input id="member-id" autocomplete="off" required placeholder="Enter your Member ID"></div><button class="button" type="submit">Continue</button></form><p id="member-status" class="message" role="status"></p><button class="button alt back">Back to Home</button></section>
+<section id="guest" class="screen"><h2>Guest Check-In</h2><p>Guest visits use the regular Day Pass rate.</p><form id="guest-form"><div class="field"><label for="guest-name">Full Name</label><input id="guest-name" required autocomplete="name"></div><div class="field"><label for="guest-phone">Contact Number</label><input id="guest-phone" required autocomplete="tel" inputmode="tel"></div><div class="field"><label for="guest-address">Complete Address</label><textarea id="guest-address" required autocomplete="street-address"></textarea></div><button class="button" type="submit">Continue</button></form><p id="guest-status" class="message" role="status"></p><button class="button alt back">Back to Home</button></section>
+<p class="note">Scanner interface preview — not yet connected to attendance or payments.</p>
 </main>
 <script>
-(() => {
-  const video = document.getElementById('camera');
-  const status = document.getElementById('status');
-  const result = document.getElementById('result');
-  let stream = null;
-  let detector = null;
-  let running = false;
-  let frameId = null;
-  const setStatus = message => { status.textContent = message; };
-
-  async function scanFrame() {
-    if (!running) return;
-    if (detector && video.readyState >= 2) {
-      try {
-        const codes = await detector.detect(video);
-        if (codes.length) {
-          result.textContent = 'QR detected: ' + codes[0].rawValue;
-          setStatus('QR code successfully read!');
-          stopCamera();
-          return;
-        }
-      } catch (error) {
-        setStatus('Camera works, but QR decoding failed: ' + error.message);
-      }
-    }
-    if (running) frameId = requestAnimationFrame(scanFrame);
-  }
-
-  async function startCamera() {
-    stopCamera();
-    result.textContent = '';
-    if (!navigator.mediaDevices?.getUserMedia) {
-      setStatus('This browser does not expose camera access on this page.');
-      return;
-    }
-    setStatus('Requesting camera permission…');
-    try {
-      try {
-        stream = await navigator.mediaDevices.getUserMedia({video: {facingMode: {ideal: 'environment'}}, audio: false});
-      } catch (firstError) {
-        if (firstError.name !== 'OverconstrainedError' && firstError.name !== 'NotFoundError') throw firstError;
-        stream = await navigator.mediaDevices.getUserMedia({video: true, audio: false});
-      }
-      video.srcObject = stream;
-      await video.play();
-      running = true;
-      if ('BarcodeDetector' in window) {
-        try {
-          const formats = await BarcodeDetector.getSupportedFormats();
-          if (formats.includes('qr_code')) detector = new BarcodeDetector({formats: ['qr_code']});
-        } catch (_) { detector = null; }
-      }
-      setStatus(detector ? 'Camera is working! Hold a QR code in view.' : 'Camera is working! This Safari version needs a QR-decoding library for scanning.');
-      if (detector) scanFrame();
-    } catch (error) {
-      setStatus('Camera error: ' + error.name + ' — ' + error.message);
-    }
-  }
-  function stopCamera() {
-    running = false;
-    if (frameId !== null) cancelAnimationFrame(frameId);
-    frameId = null;
-    if (stream) stream.getTracks().forEach(track => track.stop());
-    stream = null;
-    video.srcObject = null;
-  }
-  document.getElementById('start').addEventListener('click', startCamera);
-  document.getElementById('stop').addEventListener('click', () => { stopCamera(); setStatus('Camera stopped.'); });
-  window.addEventListener('pagehide', stopCamera);
+(()=>{
+const screens=[...document.querySelectorAll('.screen')];const video=document.getElementById('camera');const scanStatus=document.getElementById('scan-status');let stream=null,raf=0,active=false,last=0;const canvas=document.createElement('canvas');const ctx=canvas.getContext('2d',{willReadFrequently:true});
+function stop(){active=false;cancelAnimationFrame(raf);if(stream)stream.getTracks().forEach(t=>t.stop());stream=null;video.srcObject=null}
+function show(id){stop();screens.forEach(s=>s.classList.toggle('active',s.id===id));if(id==='qr')scanStatus.textContent='Tap Start Camera to scan a QR code.'}
+document.querySelectorAll('[data-screen]').forEach(b=>b.addEventListener('click',()=>show(b.dataset.screen)));document.querySelectorAll('.back').forEach(b=>b.addEventListener('click',()=>show('home')));
+function loop(now){if(!active)return;if(now-last>160&&video.readyState>=2){last=now;canvas.width=video.videoWidth;canvas.height=video.videoHeight;if(canvas.width&&canvas.height){ctx.drawImage(video,0,0);if(typeof jsQR==='function'){const image=ctx.getImageData(0,0,canvas.width,canvas.height);const code=jsQR(image.data,image.width,image.height,{inversionAttempts:'dontInvert'});if(code){stop();scanStatus.textContent='QR code recognized! The attendance connection will be added next.';scanStatus.className='message success';return}}else{scanStatus.textContent='QR decoder is unavailable. Check your internet connection.';scanStatus.className='message error'}}}raf=requestAnimationFrame(loop)}
+async function start(){stop();scanStatus.className='message';scanStatus.textContent='Requesting camera access…';try{stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:'environment'}},audio:false});video.srcObject=stream;await video.play();active=true;scanStatus.textContent='Camera ready. Hold a QR code in the frame.';raf=requestAnimationFrame(loop)}catch(e){stop();scanStatus.textContent='Camera unavailable: '+e.name+'. Check Safari camera permission.';scanStatus.className='message error'}}
+document.getElementById('start').addEventListener('click',start);
+document.getElementById('member-form').addEventListener('submit',e=>{e.preventDefault();document.getElementById('member-status').textContent='Member ID entered. Backend verification will be connected next.'});
+document.getElementById('guest-form').addEventListener('submit',e=>{e.preventDefault();document.getElementById('guest-status').textContent='Guest details entered. No guest record or payment has been created yet.'});
+window.addEventListener('pagehide',stop);
 })();
-</script>
-</body>
-</html>
+</script></body></html>
