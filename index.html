@@ -17,7 +17,7 @@
 <section id="qr" class="screen"><h2>Scan QR Code</h2><p>Hold your QR code in front of the camera.</p><div class="preview"><video id="camera" autoplay playsinline muted></video></div><div id="scan-status" class="message" role="status">Camera starts when you tap Start Camera.</div><button id="start" class="button">Start Camera</button><button class="button alt back">Back to Home</button></section>
 <section id="member" class="screen"><h2>Enter Member ID</h2><form id="member-form"><div class="field"><label for="member-id">Member ID</label><input id="member-id" autocomplete="off" required placeholder="Enter your Member ID"></div><button class="button" type="submit">Continue</button></form><p id="member-status" class="message" role="status"></p><button class="button alt back">Back to Home</button></section>
 <section id="guest" class="screen"><h2>Guest Check-In</h2><p>Guest visits use the regular Day Pass rate.</p><form id="guest-form"><div class="field"><label for="guest-name">Full Name</label><input id="guest-name" required autocomplete="name"></div><div class="field"><label for="guest-phone">Contact Number</label><input id="guest-phone" required autocomplete="tel" inputmode="tel"></div><div class="field"><label for="guest-address">Complete Address</label><textarea id="guest-address" required autocomplete="street-address"></textarea></div><button class="button" type="submit">Continue</button></form><p id="guest-status" class="message" role="status"></p><button class="button alt back">Back to Home</button></section>
-<p class="note">Scanner interface preview — not yet connected to attendance or payments.</p>
+<button id="api-test" class="button alt" type="button">Test Apps Script Connection</button><p id="api-status" class="message" role="status"></p><p class="note">Connection test only — no member or guest attendance is recorded yet.</p>
 </main>
 <script>
 (()=>{
@@ -30,6 +30,32 @@ async function start(){stop();scanStatus.className='message';scanStatus.textCont
 document.getElementById('start').addEventListener('click',start);
 document.getElementById('member-form').addEventListener('submit',e=>{e.preventDefault();document.getElementById('member-status').textContent='Member ID entered. Backend verification will be connected next.'});
 document.getElementById('guest-form').addEventListener('submit',e=>{e.preventDefault();document.getElementById('guest-status').textContent='Guest details entered. No guest record or payment has been created yet.'});
+// A harmless unsupported operation verifies the round trip without writing data.
+const API_URL='https://script.google.com/macros/s/AKfycby5uiwIZfp8dS7SMcCJz2VqYUezFYy6k0vXgW9Xsk15vhYMy_dGcbvlrV3bDCRDR-2_/exec';
+const apiStatus=document.getElementById('api-status');
+let pendingId=null,timeoutId=null,frame=null;
+window.addEventListener('message',event=>{
+  if(!pendingId || !/^https:\/\/([a-z0-9-]+\.)?googleusercontent\.com$/.test(event.origin))return;
+  let data=event.data;
+  if(typeof data==='string'){try{data=JSON.parse(data)}catch{return}}
+  if(!data || data.requestId!==pendingId || !data.result)return;
+  clearTimeout(timeoutId);pendingId=null;
+  apiStatus.textContent='Connection confirmed: Google Apps Script responded. No attendance was recorded.';
+  apiStatus.className='message success';
+  if(frame){frame.remove();frame=null}
+});
+document.getElementById('api-test').addEventListener('click',()=>{
+  if(pendingId)return;
+  pendingId='test-'+Date.now()+'-'+Math.random().toString(36).slice(2);
+  apiStatus.textContent='Contacting ACRUX Apps Script…';apiStatus.className='message';
+  frame=document.createElement('iframe');frame.name='acrux-api-'+Date.now();frame.style.display='none';document.body.appendChild(frame);
+  const form=document.createElement('form');form.method='POST';form.action=API_URL;form.target=frame.name;form.style.display='none';
+  for(const [name,value] of Object.entries({action:'connectionTestOnly',requestId:pendingId})){
+    const input=document.createElement('input');input.type='hidden';input.name=name;input.value=value;form.appendChild(input);
+  }
+  document.body.appendChild(form);form.submit();form.remove();
+  timeoutId=setTimeout(()=>{pendingId=null;apiStatus.textContent='No confirmation received. The request may have reached Apps Script, but Safari did not receive the response.';apiStatus.className='message error';if(frame){frame.remove();frame=null}},12000);
+});
 window.addEventListener('pagehide',stop);
 })();
 </script></body></html>
