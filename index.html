@@ -4,12 +4,12 @@
 <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>ACRUX Gym | Check-In</title>
 <style>
-:root{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color-scheme:dark}*{box-sizing:border-box}body{margin:0;min-height:100dvh;background:#172a38;color:#fff;display:flex;align-items:center;justify-content:center;padding:18px}.app{width:min(100%,480px);background:#243746;border:1px solid #486071;border-radius:22px;padding:28px 22px;box-shadow:0 16px 50px #0a182450;text-align:center}.brand{display:flex;align-items:center;justify-content:center;gap:14px;margin-bottom:24px}.brand-logo{width:66px;height:66px;object-fit:contain;flex-shrink:0}.brand-text{text-align:left}.brand-text h1{margin:0;font-size:27px}.brand-text .tag{margin:5px 0 0;font-size:10px;letter-spacing:.16em}h1{letter-spacing:.12em;font-size:32px;margin:4px 0}.tag{font-size:12px;letter-spacing:.2em;color:#c5d4df;margin-bottom:32px}h2{margin:0 0 8px}p{color:#d4e1e8;line-height:1.5}.menu{display:grid;gap:13px;margin:24px 0}.choice{display:flex;align-items:center;gap:15px;text-align:left;background:#fff;color:#243746;padding:20px;border:0;border-radius:14px;width:100%;font:inherit;cursor:pointer}.choice .symbol{font-size:27px}.choice b{display:block;font-size:17px}.choice small{display:block;color:#526878;margin-top:5px}.choice .arrow{margin-left:auto;font-size:24px}.screen{display:none}.screen.active{display:block}.button{background:#e0edf2;color:#1b3444;border:0;border-radius:11px;padding:14px 20px;font:inherit;font-weight:700;cursor:pointer;width:100%;margin-top:12px}.button.alt{background:transparent;color:#fff;border:1px solid #8aa1b0}.field{text-align:left;margin:16px 0}.field label{display:block;margin-bottom:7px;font-size:14px}.field input,.field textarea{display:block;width:100%;background:#fff;color:#172a38;border:0;border-radius:9px;padding:13px;font:inherit}.field textarea{min-height:80px;resize:vertical}.preview{aspect-ratio:4/3;background:#08151e;border:2px solid #617a8c;border-radius:15px;overflow:hidden;margin:18px 0;position:relative}.preview video{width:100%;height:100%;object-fit:cover}.preview::after{content:"";position:absolute;inset:16% 20%;border:2px solid #b9e6db;border-radius:10px;pointer-events:none}.message{min-height:42px;overflow-wrap:anywhere}.note{font-size:12px;color:#bacbd4}.success{color:#a5f1c5}.error{color:#ffbdba}button:focus-visible,input:focus-visible,textarea:focus-visible{outline:3px solid #92d9ee;outline-offset:3px}
+:root{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color-scheme:dark}*{box-sizing:border-box}body{margin:0;min-height:100dvh;background:#172a38;color:#fff;display:flex;align-items:center;justify-content:center;padding:18px}.app{width:min(100%,480px);background:#243746;border:1px solid #486071;border-radius:22px;padding:28px 22px;box-shadow:0 16px 50px #0a182450;text-align:center}h1{letter-spacing:.12em;font-size:32px;margin:4px 0}.tag{font-size:12px;letter-spacing:.2em;color:#c5d4df;margin-bottom:32px}h2{margin:0 0 8px}p{color:#d4e1e8;line-height:1.5}.menu{display:grid;gap:13px;margin:24px 0}.choice{display:flex;align-items:center;gap:15px;text-align:left;background:#fff;color:#243746;padding:20px;border:0;border-radius:14px;width:100%;font:inherit;cursor:pointer}.choice .symbol{font-size:27px}.choice b{display:block;font-size:17px}.choice small{display:block;color:#526878;margin-top:5px}.choice .arrow{margin-left:auto;font-size:24px}.screen{display:none}.screen.active{display:block}.button{background:#e0edf2;color:#1b3444;border:0;border-radius:11px;padding:14px 20px;font:inherit;font-weight:700;cursor:pointer;width:100%;margin-top:12px}.button.alt{background:transparent;color:#fff;border:1px solid #8aa1b0}.field{text-align:left;margin:16px 0}.field label{display:block;margin-bottom:7px;font-size:14px}.field input,.field textarea{display:block;width:100%;background:#fff;color:#172a38;border:0;border-radius:9px;padding:13px;font:inherit}.field textarea{min-height:80px;resize:vertical}.preview{aspect-ratio:4/3;background:#08151e;border:2px solid #617a8c;border-radius:15px;overflow:hidden;margin:18px 0;position:relative}.preview video{width:100%;height:100%;object-fit:cover}.preview::after{content:"";position:absolute;inset:16% 20%;border:2px solid #b9e6db;border-radius:10px;pointer-events:none}.message{min-height:42px;overflow-wrap:anywhere}.note{font-size:12px;color:#bacbd4}.success{color:#a5f1c5}.error{color:#ffbdba}button:focus-visible,input:focus-visible,textarea:focus-visible{outline:3px solid #92d9ee;outline-offset:3px}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js" defer></script>
 </head>
 <body><main class="app">
-<header class="brand"><img class="brand-logo" src="./ACRUX_Logo.png" alt="ACRUX Gym logo"><div class="brand-text"><h1>ACRUX GYM</h1><div class="tag">STRENGTH FOR LIFE</div></div></header>
+<header><h1>ACRUX GYM</h1><div class="tag">STRENGTH FOR LIFE</div></header>
 <section id="home" class="screen active"><h2>Welcome!</h2><p>Please select your check-in method.</p><div class="menu">
 <button class="choice" data-screen="qr"><span class="symbol">▣</span><span><b>Scan QR Code</b><small>Use your membership QR code</small></span><span class="arrow">›</span></button>
 <button class="choice" data-screen="member"><span class="symbol">#</span><span><b>Enter Member ID</b><small>Check in with your membership number</small></span><span class="arrow">›</span></button>
@@ -17,7 +17,7 @@
 <section id="qr" class="screen"><h2>Scan QR Code</h2><p>Hold your QR code in front of the camera.</p><div class="preview"><video id="camera" autoplay playsinline muted></video></div><div id="scan-status" class="message" role="status">Camera starts when you tap Start Camera.</div><button id="start" class="button">Start Camera</button><button class="button alt back">Back to Home</button></section>
 <section id="member" class="screen"><h2>Enter Member ID</h2><form id="member-form"><div class="field"><label for="member-id">Member ID</label><input id="member-id" autocomplete="off" required placeholder="Enter your Member ID"></div><button class="button" type="submit">Continue</button></form><p id="member-status" class="message" role="status"></p><button class="button alt back">Back to Home</button></section>
 <section id="guest" class="screen"><h2>Guest Check-In</h2><p>Guest visits use the regular Day Pass rate.</p><form id="guest-form"><div class="field"><label for="guest-name">Full Name</label><input id="guest-name" required autocomplete="name"></div><div class="field"><label for="guest-phone">Contact Number</label><input id="guest-phone" required autocomplete="tel" inputmode="tel"></div><div class="field"><label for="guest-address">Complete Address</label><textarea id="guest-address" required autocomplete="street-address"></textarea></div><button class="button" type="submit">Continue</button></form><p id="guest-status" class="message" role="status"></p><button class="button alt back">Back to Home</button></section>
-<button id="api-test" class="button alt" type="button">Test Apps Script Connection</button><p id="api-status" class="message" role="status"></p><p class="note">Diagnostic only — no attendance is recorded. After testing, check the white frame below for any Google error.</p>
+<p class="note">Scanner interface preview — not yet connected to attendance or payments.</p>
 </main>
 <script>
 (()=>{
@@ -30,34 +30,6 @@ async function start(){stop();scanStatus.className='message';scanStatus.textCont
 document.getElementById('start').addEventListener('click',start);
 document.getElementById('member-form').addEventListener('submit',e=>{e.preventDefault();document.getElementById('member-status').textContent='Member ID entered. Backend verification will be connected next.'});
 document.getElementById('guest-form').addEventListener('submit',e=>{e.preventDefault();document.getElementById('guest-status').textContent='Guest details entered. No guest record or payment has been created yet.'});
-// A harmless unsupported operation verifies the round trip without writing data.
-const API_URL='https://script.google.com/macros/s/AKfycby5uiwIZfp8dS7SMcCJz2VqYUezFYy6k0vXgW9Xsk15vhYMy_dGcbvlrV3bDCRDR-2_/exec';
-const apiStatus=document.getElementById('api-status');
-let pendingId=null,timeoutId=null,frame=null;
-window.addEventListener('message',event=>{
-  if(!pendingId)return;
-  const allowed = /^https:\/\/([a-z0-9-]+\.)?googleusercontent\.com$/.test(event.origin) || event.origin==='https://script.google.com';
-  if(!allowed){apiStatus.textContent='Message arrived from '+event.origin+' (not accepted).';return;}
-  let data=event.data;
-  if(typeof data==='string'){try{data=JSON.parse(data)}catch{return}}
-  if(!data || data.requestId!==pendingId || !data.result)return;
-  clearTimeout(timeoutId);pendingId=null;
-  apiStatus.textContent='Connection confirmed: Google Apps Script responded. No attendance was recorded.';
-  apiStatus.className='message success';
-  if(frame){frame.remove();frame=null}
-});
-document.getElementById('api-test').addEventListener('click',()=>{
-  if(pendingId)return;
-  pendingId='test-'+Date.now()+'-'+Math.random().toString(36).slice(2);
-  apiStatus.textContent='Contacting ACRUX Apps Script…';apiStatus.className='message';
-  frame=document.createElement('iframe');frame.name='acrux-api-'+Date.now();frame.style.cssText='display:block;width:100%;height:180px;border:1px solid #8aa1b0;border-radius:10px;background:white;margin-top:12px';document.body.appendChild(frame);
-  const form=document.createElement('form');form.method='POST';form.action=API_URL;form.target=frame.name;form.style.display='none';
-  for(const [name,value] of Object.entries({action:'connectionTestOnly',requestId:pendingId})){
-    const input=document.createElement('input');input.type='hidden';input.name=name;input.value=value;form.appendChild(input);
-  }
-  document.body.appendChild(form);form.submit();form.remove();
-  timeoutId=setTimeout(()=>{pendingId=null;apiStatus.textContent='No confirmation received. Check the diagnostic frame below for a Google error or blocked content.';apiStatus.className='message error';if(frame){frame.style.display='block'}},12000);
-});
 window.addEventListener('pagehide',stop);
 })();
 </script></body></html>
