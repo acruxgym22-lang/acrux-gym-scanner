@@ -40,4 +40,31 @@ document.getElementById('member-form').addEventListener('submit',e=>{e.preventDe
 document.getElementById('guest-form').addEventListener('submit',e=>{e.preventDefault();document.getElementById('guest-status').textContent='Guest details entered. No guest record or payment has been created yet.'});
 window.addEventListener('pagehide',stop);
 })();
-</script></body></html>
+</script><<!-- ACRUX Guest Check-In connection: insert immediately before </body>
+     in the CURRENT WORKING GitHub Pages index.html. Do not replace scanner code. -->
+<script>
+(function () {
+  'use strict';
+  const CHECK_IN_URL = 'https://script.google.com/macros/s/AKfycbzj9iNDLDoc7dzBCvcXsGBc4urLLwIfmDTzni_UgWP9GUTxMo9mrWidU9ahrUUevR1yTg/exec';
+  function openGuest() { window.location.assign(CHECK_IN_URL + '?guest=1'); }
+  // Do not show a broken-image icon when the logo asset is absent.
+  // To show the official logo, upload ACRUX_Logo.png to the GitHub repository.
+  document.querySelectorAll('img.brand-logo').forEach(function(img) {
+    img.addEventListener('error', function() { img.style.display = 'none'; });
+    if (img.complete && img.naturalWidth === 0) img.style.display = 'none';
+  });
+  // Capture the guest button before the old placeholder handler opens a dead-end form.
+  document.addEventListener('click', function(event) {
+    const button = event.target.closest('[data-screen="guest"]');
+    if (button) { event.preventDefault(); event.stopImmediatePropagation(); openGuest(); }
+  }, true);
+  // For anyone already on the old guest form, redirect on Continue instead
+  // of displaying the misleading "not connected" confirmation.
+  document.addEventListener('submit', function(event) {
+    if (event.target && event.target.id === 'guest-form') {
+      event.preventDefault(); event.stopImmediatePropagation(); openGuest();
+    }
+  }, true);
+})();
+</script>
+</body></html>
