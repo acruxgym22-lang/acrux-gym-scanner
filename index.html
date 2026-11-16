@@ -9,25 +9,15 @@
 <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js" defer></script>
 </head>
 <body><main class="app">
-
-<header>
-  <img
-    src="https://acruxgym22-lang.github.io/acrux-gym-scanner/ACRUX_Logo.png"
-    alt="ACRUX Gym Logo"
-    style="width:120px;height:auto;display:block !important;visibility:visible !important;margin:0 auto 15px;"
-  >
-  <h1>ACRUX GYM</h1>
-  <div class="tag">STRENGTH FOR LIFE</div>
-</header>
-
+<header><img src="https://acruxgym22-lang.github.io/acrux-gym-scanner/ACRUX_Logo.png" alt="ACRUX Gym Logo" style="width:120px;height:auto;display:block !important;visibility:visible !important;margin:0 auto 15px"><h1>ACRUX GYM</h1><div class="tag">STRENGTH FOR LIFE</div></header>
 <section id="home" class="screen active"><h2>Welcome!</h2><p>Please select your check-in method.</p><div class="menu">
 <button class="choice" data-screen="qr"><span class="symbol">▣</span><span><b>Scan QR Code</b><small>Use your membership QR code</small></span><span class="arrow">›</span></button>
 <button class="choice" data-screen="member"><span class="symbol">#</span><span><b>Enter Member ID</b><small>Check in with your membership number</small></span><span class="arrow">›</span></button>
 <button class="choice" data-screen="guest"><span class="symbol">♙</span><span><b>Guest Check-In</b><small>Register for a Day Pass</small></span><span class="arrow">›</span></button></div></section>
-<section id="qr" class="screen"><h2>Scan QR Code</h2><p>Hold your QR code in front of the camera.</p><div class="preview"><video id="camera" autoplay playsinline muted></video></div><div id="scan-status" class="message" role="status">Camera starts when you tap Start Camera.</div><button id="start" class="button">Start Camera</button><button class="button alt back">Back to Home</button></section>
+<section id="qr" class="screen"><h2>Scan QR Code</h2><p>Hold your QR code in front of the camera.</p><div class="preview"><video id="camera" autoplay playsinline muted></video></div><div id="scan-status" class="message" role="status">Camera starts when you tap Start Camera.</div><button id="start" class="button">Start Camera</button><button id="switch-camera" class="button alt" type="button">Switch to Back Camera</button><button class="button alt back">Back to Home</button></section>
 <section id="member" class="screen"><h2>Enter Member ID</h2><form id="member-form"><div class="field"><label for="member-id">Member ID</label><input id="member-id" autocomplete="off" required placeholder="Enter your Member ID"></div><button class="button" type="submit">Continue</button></form><p id="member-status" class="message" role="status"></p><button class="button alt back">Back to Home</button></section>
 <section id="guest" class="screen"><h2>Guest Check-In</h2><p>Guest visits use the regular Day Pass rate.</p><form id="guest-form"><div class="field"><label for="guest-name">Full Name</label><input id="guest-name" required autocomplete="name"></div><div class="field"><label for="guest-phone">Contact Number</label><input id="guest-phone" required autocomplete="tel" inputmode="tel"></div><div class="field"><label for="guest-address">Complete Address</label><textarea id="guest-address" required autocomplete="street-address"></textarea></div><button class="button" type="submit">Continue</button></form><p id="guest-status" class="message" role="status"></p><button class="button alt back">Back to Home</button></section>
-<p class="note">Check-in is verified through the authorized ACRUX Gym Check-In app. Guest registration is not yet connected.</p>
+<p class="note">Check-in is verified through the authorized ACRUX Gym Check-In app. Guest Check-In opens the authorized registration form.</p>
 </main>
 <script>
 (()=>{
@@ -39,42 +29,27 @@ function sendToCheckIn(identifier){
   window.location.assign(CHECKIN_URL+'?qr='+encodeURIComponent(value));
   return true;
 }
-const screens=[...document.querySelectorAll('.screen')];const video=document.getElementById('camera');const scanStatus=document.getElementById('scan-status');let stream=null,raf=0,active=false,last=0;const canvas=document.createElement('canvas');const ctx=canvas.getContext('2d',{willReadFrequently:true});
+const screens=[...document.querySelectorAll('.screen')];const video=document.getElementById('camera');const scanStatus=document.getElementById('scan-status');let stream=null,raf=0,active=false,last=0;let cameraFacing='user';const canvas=document.createElement('canvas');const ctx=canvas.getContext('2d',{willReadFrequently:true});
 function stop(){active=false;cancelAnimationFrame(raf);if(stream)stream.getTracks().forEach(t=>t.stop());stream=null;video.srcObject=null}
 function show(id){stop();screens.forEach(s=>s.classList.toggle('active',s.id===id));if(id==='qr')scanStatus.textContent='Tap Start Camera to scan a QR code.'}
-document.querySelectorAll('[data-screen]').forEach(b=>b.addEventListener('click',()=>show(b.dataset.screen)));document.querySelectorAll('.back').forEach(b=>b.addEventListener('click',()=>show('home')));
+document.querySelectorAll('[data-screen]').forEach(b=>b.addEventListener('click',()=>{if(b.dataset.screen==='guest'){window.location.assign(CHECKIN_URL+'?guest=1');return;}show(b.dataset.screen)}));document.querySelectorAll('.back').forEach(b=>b.addEventListener('click',()=>show('home')));
 function loop(now){if(!active)return;if(now-last>160&&video.readyState>=2){last=now;canvas.width=video.videoWidth;canvas.height=video.videoHeight;if(canvas.width&&canvas.height){ctx.drawImage(video,0,0);if(typeof jsQR==='function'){const image=ctx.getImageData(0,0,canvas.width,canvas.height);const code=jsQR(image.data,image.width,image.height,{inversionAttempts:'dontInvert'});if(code){stop();scanStatus.textContent='QR recognized. Opening secure Check-In…';scanStatus.className='message success';if(!sendToCheckIn(code.data)){scanStatus.textContent='Invalid QR code. Please try again.';scanStatus.className='message error'}return}}else{scanStatus.textContent='QR decoder is unavailable. Check your internet connection.';scanStatus.className='message error'}}}raf=requestAnimationFrame(loop)}
-async function start(){stop();scanStatus.className='message';scanStatus.textContent='Requesting camera access…';try{stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:'environment'}},audio:false});video.srcObject=stream;await video.play();active=true;scanStatus.textContent='Camera ready. Hold a QR code in the frame.';raf=requestAnimationFrame(loop)}catch(e){stop();scanStatus.textContent='Camera unavailable: '+e.name+'. Check Safari camera permission.';scanStatus.className='message error'}}
+async function start(){
+  stop();scanStatus.className='message';scanStatus.textContent='Requesting '+(cameraFacing==='user'?'front':'back')+' camera…';
+  try {
+    // Stop the previous camera before acquiring the next one (important on tablets).
+    stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:cameraFacing}},audio:false});
+    video.srcObject=stream;await video.play();active=true;
+    scanStatus.textContent='Camera ready. Hold a QR code in the frame.';
+    raf=requestAnimationFrame(loop);
+  } catch(e) {stop();scanStatus.textContent='Camera unavailable: '+e.name+'. Try switching camera or check browser permissions.';scanStatus.className='message error';}
+}
+function updateSwitchLabel(){document.getElementById('switch-camera').textContent=cameraFacing==='user'?'Switch to Back Camera':'Switch to Front Camera';}
+document.getElementById('switch-camera').addEventListener('click',async()=>{cameraFacing=cameraFacing==='user'?'environment':'user';updateSwitchLabel();await start();});
+updateSwitchLabel();
 document.getElementById('start').addEventListener('click',start);
 document.getElementById('member-form').addEventListener('submit',e=>{e.preventDefault();if(!sendToCheckIn(document.getElementById('member-id').value)){document.getElementById('member-status').textContent='Enter a valid Member ID.'}});
-document.getElementById('guest-form').addEventListener('submit',e=>{e.preventDefault();document.getElementById('guest-status').textContent='Guest details entered. No guest record or payment has been created yet.'});
+document.getElementById('guest-form').addEventListener('submit',e=>{e.preventDefault();window.location.assign(CHECKIN_URL+'?guest=1');});
 window.addEventListener('pagehide',stop);
 })();
-</script><<!-- ACRUX Guest Check-In connection: insert immediately before </body>
-     in the CURRENT WORKING GitHub Pages index.html. Do not replace scanner code. -->
-<script>
-(function () {
-  'use strict';
-  const CHECK_IN_URL = 'https://script.google.com/macros/s/AKfycbzj9iNDLDoc7dzBCvcXsGBc4urLLwIfmDTzni_UgWP9GUTxMo9mrWidU9ahrUUevR1yTg/exec';
-  function openGuest() { window.location.assign(CHECK_IN_URL + '?guest=1'); }
-  // Do not show a broken-image icon when the logo asset is absent.
-  // To show the official logo, upload ACRUX_Logo.png to the GitHub repository.
-  document.querySelectorAll('img.brand-logo').forEach(function(img) {
-    img.addEventListener('error', function() { img.style.display = 'none'; });
-    if (img.complete && img.naturalWidth === 0) img.style.display = 'none';
-  });
-  // Capture the guest button before the old placeholder handler opens a dead-end form.
-  document.addEventListener('click', function(event) {
-    const button = event.target.closest('[data-screen="guest"]');
-    if (button) { event.preventDefault(); event.stopImmediatePropagation(); openGuest(); }
-  }, true);
-  // For anyone already on the old guest form, redirect on Continue instead
-  // of displaying the misleading "not connected" confirmation.
-  document.addEventListener('submit', function(event) {
-    if (event.target && event.target.id === 'guest-form') {
-      event.preventDefault(); event.stopImmediatePropagation(); openGuest();
-    }
-  }, true);
-})();
-</script>
-</body></html>
+</script></body></html>
