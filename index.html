@@ -17,18 +17,26 @@
 <section id="qr" class="screen"><h2>Scan QR Code</h2><p>Hold your QR code in front of the camera.</p><div class="preview"><video id="camera" autoplay playsinline muted></video></div><div id="scan-status" class="message" role="status">Camera starts when you tap Start Camera.</div><button id="start" class="button">Start Camera</button><button class="button alt back">Back to Home</button></section>
 <section id="member" class="screen"><h2>Enter Member ID</h2><form id="member-form"><div class="field"><label for="member-id">Member ID</label><input id="member-id" autocomplete="off" required placeholder="Enter your Member ID"></div><button class="button" type="submit">Continue</button></form><p id="member-status" class="message" role="status"></p><button class="button alt back">Back to Home</button></section>
 <section id="guest" class="screen"><h2>Guest Check-In</h2><p>Guest visits use the regular Day Pass rate.</p><form id="guest-form"><div class="field"><label for="guest-name">Full Name</label><input id="guest-name" required autocomplete="name"></div><div class="field"><label for="guest-phone">Contact Number</label><input id="guest-phone" required autocomplete="tel" inputmode="tel"></div><div class="field"><label for="guest-address">Complete Address</label><textarea id="guest-address" required autocomplete="street-address"></textarea></div><button class="button" type="submit">Continue</button></form><p id="guest-status" class="message" role="status"></p><button class="button alt back">Back to Home</button></section>
-<p class="note">Scanner interface preview — not yet connected to attendance or payments.</p>
+<p class="note">Check-in is verified through the authorized ACRUX Gym Check-In app. Guest registration is not yet connected.</p>
 </main>
 <script>
 (()=>{
+const CHECKIN_URL='https://script.google.com/macros/s/AKfycbzj9iNDLDoc7dzBCvcXsGBc4urLLwIfmDTzni_UgWP9GUTxMo9mrWidU9ahrUUevR1yTg/exec';
+function sendToCheckIn(identifier){
+  const value=String(identifier||'').trim();
+  if(!value||value.length>300){return false;}
+  // Full navigation, not iframe or cross-origin fetch.
+  window.location.assign(CHECKIN_URL+'?qr='+encodeURIComponent(value));
+  return true;
+}
 const screens=[...document.querySelectorAll('.screen')];const video=document.getElementById('camera');const scanStatus=document.getElementById('scan-status');let stream=null,raf=0,active=false,last=0;const canvas=document.createElement('canvas');const ctx=canvas.getContext('2d',{willReadFrequently:true});
 function stop(){active=false;cancelAnimationFrame(raf);if(stream)stream.getTracks().forEach(t=>t.stop());stream=null;video.srcObject=null}
 function show(id){stop();screens.forEach(s=>s.classList.toggle('active',s.id===id));if(id==='qr')scanStatus.textContent='Tap Start Camera to scan a QR code.'}
 document.querySelectorAll('[data-screen]').forEach(b=>b.addEventListener('click',()=>show(b.dataset.screen)));document.querySelectorAll('.back').forEach(b=>b.addEventListener('click',()=>show('home')));
-function loop(now){if(!active)return;if(now-last>160&&video.readyState>=2){last=now;canvas.width=video.videoWidth;canvas.height=video.videoHeight;if(canvas.width&&canvas.height){ctx.drawImage(video,0,0);if(typeof jsQR==='function'){const image=ctx.getImageData(0,0,canvas.width,canvas.height);const code=jsQR(image.data,image.width,image.height,{inversionAttempts:'dontInvert'});if(code){stop();scanStatus.textContent='QR code recognized! The attendance connection will be added next.';scanStatus.className='message success';return}}else{scanStatus.textContent='QR decoder is unavailable. Check your internet connection.';scanStatus.className='message error'}}}raf=requestAnimationFrame(loop)}
+function loop(now){if(!active)return;if(now-last>160&&video.readyState>=2){last=now;canvas.width=video.videoWidth;canvas.height=video.videoHeight;if(canvas.width&&canvas.height){ctx.drawImage(video,0,0);if(typeof jsQR==='function'){const image=ctx.getImageData(0,0,canvas.width,canvas.height);const code=jsQR(image.data,image.width,image.height,{inversionAttempts:'dontInvert'});if(code){stop();scanStatus.textContent='QR recognized. Opening secure Check-In…';scanStatus.className='message success';if(!sendToCheckIn(code.data)){scanStatus.textContent='Invalid QR code. Please try again.';scanStatus.className='message error'}return}}else{scanStatus.textContent='QR decoder is unavailable. Check your internet connection.';scanStatus.className='message error'}}}raf=requestAnimationFrame(loop)}
 async function start(){stop();scanStatus.className='message';scanStatus.textContent='Requesting camera access…';try{stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:'environment'}},audio:false});video.srcObject=stream;await video.play();active=true;scanStatus.textContent='Camera ready. Hold a QR code in the frame.';raf=requestAnimationFrame(loop)}catch(e){stop();scanStatus.textContent='Camera unavailable: '+e.name+'. Check Safari camera permission.';scanStatus.className='message error'}}
 document.getElementById('start').addEventListener('click',start);
-document.getElementById('member-form').addEventListener('submit',e=>{e.preventDefault();document.getElementById('member-status').textContent='Member ID entered. Backend verification will be connected next.'});
+document.getElementById('member-form').addEventListener('submit',e=>{e.preventDefault();if(!sendToCheckIn(document.getElementById('member-id').value)){document.getElementById('member-status').textContent='Enter a valid Member ID.'}});
 document.getElementById('guest-form').addEventListener('submit',e=>{e.preventDefault();document.getElementById('guest-status').textContent='Guest details entered. No guest record or payment has been created yet.'});
 window.addEventListener('pagehide',stop);
 })();
