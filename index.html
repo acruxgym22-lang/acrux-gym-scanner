@@ -30,16 +30,8 @@ const startButton=document.getElementById('start');
 const switchButton=document.getElementById('switch-camera');
 const canvas=document.createElement('canvas');
 const ctx=canvas.getContext('2d',{willReadFrequently:true});
-const bridge=document.createElement('iframe');
-bridge.src=CHECKIN_URL+'?bridge=1';
-bridge.title='Secure ACRUX check-in connection';
-bridge.style.cssText='position:absolute;width:1px;height:1px;border:0;opacity:0;pointer-events:none';
-bridge.setAttribute('aria-hidden','true');
-document.body.appendChild(bridge);
-let bridgeReady=false,stream=null,raf=0,active=false,last=0,cameraFacing='user',requestId=0,starting=false;
-let pending=null,seq=0,holdUntil=0,previousCode='',previousAt=0;
-let pendingTimeout=0;
-let cameraErrorDetail='';
+let stream=null,raf=0,active=false,last=0,cameraFacing='user',requestId=0,starting=false;
+let holdUntil=0,previousCode='',previousAt=0;
 function status(message,kind=''){scanStatus.textContent=message;scanStatus.className='message'+(kind?' '+kind:'');}
 function stop(){
  requestId++;active=false;cancelAnimationFrame(raf);raf=0;
@@ -48,50 +40,23 @@ function stop(){
 }
 function show(id){
  stop();screens.forEach(s=>s.classList.toggle('active',s.id===id));
- if(id==='qr')status(bridgeReady?'Tap Start Camera to scan a QR code.':'Connecting to secure Check-In…');
+ if(id==='qr')status('Tap Start Camera to scan a QR code.');
 }
-function clearPending(){if(pendingTimeout)clearTimeout(pendingTimeout);pendingTimeout=0;pending=null;}
 function submit(identifier,displayTarget){
  const value=String(identifier||'').trim();
- if(!value||value.length>300){if(displayTarget)displayTarget.textContent='Invalid Member ID or QR code.';return false;}
- if(!bridgeReady){
-  const msg='Secure check-in connection unavailable. Open the Check-In app in a separate tab and sign in, then reload this scanner.';
-  if(displayTarget)displayTarget.textContent=msg;else status(msg,'error');return false;
+ if(!value||value.length>300){
+  if(displayTarget)displayTarget.textContent='Invalid Member ID or QR code.';
+  else status('Invalid Member ID or QR code.','error');
+  return false;
  }
- if(pending)return false;
- const id=++seq;pending={id,value};
- if(displayTarget)displayTarget.textContent='Checking membership and payment…';
- else status('Checking membership and payment…');
- bridge.contentWindow.postMessage({app:'acrux',action:'checkin',id,identifier:value},'*');
- pendingTimeout=setTimeout(()=>{
-  if(!pending||pending.id!==id)return;
-  clearPending();holdUntil=performance.now()+5000;
-  const msg='Check-in timed out. Ask the coach to check attendance before scanning again.';
-  if(displayTarget)displayTarget.textContent=msg;else status(msg,'error');
- },25000);
+ stop();
+ if(displayTarget)displayTarget.textContent='Opening authorized check-in…';
+ else status('QR detected. Opening authorized check-in…');
+ // The member token is passed to the restricted Google app, which performs
+ // membership/payment checks after the authorized Google sign-in.
+ window.location.assign(CHECKIN_URL+'?qr='+encodeURIComponent(value));
  return true;
 }
-window.addEventListener('message',event=>{
- if(event.source!==bridge.contentWindow)return;
- if(!/^https:\/\/(script\.google\.com|[a-z0-9-]+\.googleusercontent\.com)$/.test(event.origin))return;
- const data=event.data;
- if(!data||data.app!=='acrux')return;
- if(data.action==='ready'){
-  bridgeReady=true;
-  if(document.getElementById('qr').classList.contains('active')&&!active)status('Tap Start Camera to scan a QR code.');
-  return;
- }
- if(data.action!=='result'||!pending||data.id!==pending.id)return;
- clearPending();
- const result=data.result||{};
- const kind=result.status==='Checked In'||result.status==='Already Checked In'?'success':
-   result.status==='Payment Required'?'error':(data.error?'error':'');
- const msg=data.error?'Check-in error: '+data.error:
-   (result.name?result.name+' — ':'')+(result.status||'Check-In')+'. '+(result.message||'');
- const onQR=document.getElementById('qr').classList.contains('active');
- if(onQR){status(msg,kind);holdUntil=performance.now()+3500;}
- else document.getElementById('member-status').textContent=msg;
-});
 document.querySelectorAll('[data-screen]').forEach(button=>button.addEventListener('click',()=>{
  if(button.dataset.screen==='guest'){window.location.assign(CHECKIN_URL+'?guest=1');return;}
  show(button.dataset.screen);
@@ -99,7 +64,7 @@ document.querySelectorAll('[data-screen]').forEach(button=>button.addEventListen
 document.querySelectorAll('.back').forEach(button=>button.addEventListener('click',()=>show('home')));
 function loop(now){
  if(!active)return;
- if(now>=holdUntil&&!pending&&now-last>170&&video.readyState>=2){
+ if(now>=holdUntil&&now-last>170&&video.readyState>=2){
   last=now;canvas.width=video.videoWidth;canvas.height=video.videoHeight;
   if(canvas.width&&canvas.height&&typeof jsQR==='function'){
    ctx.drawImage(video,0,0);
@@ -130,7 +95,7 @@ async function start(){
   }
   stream=acquired;video.srcObject=stream;await video.play();
   if(currentRequest!==requestId)return;
-  active=true;status(bridgeReady?'Camera ready. Scan a member.':'Camera ready, but secure Check-In is still connecting. Scanning will begin when connected.');
+  active=true;status('Camera ready. Scan a member.');
   raf=requestAnimationFrame(loop);
  }catch(error){
   if(currentRequest!==requestId)return;
