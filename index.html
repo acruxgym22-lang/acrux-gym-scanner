@@ -62,7 +62,6 @@ function show(id){
 }
 document.querySelectorAll('[data-screen]').forEach(button=>button.addEventListener('click',()=>{
  if(button.dataset.screen==='guest'){window.location.assign(CHECKIN_URL+'?guest=1');return;}
-    if(button.dataset.screen==='qr'){window.location.assign(CHECKIN_URL+'?scan=1');return;}
  show(button.dataset.screen);
 }));
 document.querySelectorAll('.back').forEach(button=>button.addEventListener('click',()=>show('home')));
