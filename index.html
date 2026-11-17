@@ -30,36 +30,66 @@ const startButton=document.getElementById('start');
 const switchButton=document.getElementById('switch-camera');
 const canvas=document.createElement('canvas');
 const ctx=canvas.getContext('2d',{willReadFrequently:true});
-let stream=null,raf=0,active=false,last=0,cameraFacing='user',requestId=0,starting=false,navigating=false;
-function status(message,kind=''){
- scanStatus.textContent=message;
- scanStatus.className='message'+(kind?' '+kind:'');
-}
+const bridge=document.createElement('iframe');
+bridge.src=CHECKIN_URL+'?bridge=1';
+bridge.title='Secure ACRUX check-in connection';
+bridge.style.cssText='position:absolute;width:1px;height:1px;border:0;opacity:0;pointer-events:none';
+bridge.setAttribute('aria-hidden','true');
+document.body.appendChild(bridge);
+let bridgeReady=false,stream=null,raf=0,active=false,last=0,cameraFacing='user',requestId=0,starting=false;
+let pending=null,seq=0,holdUntil=0,previousCode='',previousAt=0;
+let pendingTimeout=0;
+function status(message,kind=''){scanStatus.textContent=message;scanStatus.className='message'+(kind?' '+kind:'');}
 function stop(){
- // Invalidate any pending getUserMedia request before it can attach a late stream.
- requestId++;
- active=false;
- cancelAnimationFrame(raf);
- raf=0;
- if(stream){stream.getTracks().forEach(track=>track.stop());stream=null;}
- video.pause();video.srcObject=null;
- starting=false;
- startButton.disabled=false;
- switchButton.disabled=false;
-}
-function sendToCheckIn(identifier){
- const value=String(identifier||'').trim();
- if(!value||value.length>300)return false;
- navigating=true;
- window.location.assign(CHECKIN_URL+'?qr='+encodeURIComponent(value));
- return true;
+ requestId++;active=false;cancelAnimationFrame(raf);raf=0;
+ if(stream){stream.getTracks().forEach(t=>t.stop());stream=null;}
+ video.pause();video.srcObject=null;starting=false;startButton.disabled=false;switchButton.disabled=false;
 }
 function show(id){
- stop();
- navigating=false;
- screens.forEach(screen=>screen.classList.toggle('active',screen.id===id));
- if(id==='qr')status('Tap Start Camera to scan a QR code.');
+ stop();screens.forEach(s=>s.classList.toggle('active',s.id===id));
+ if(id==='qr')status(bridgeReady?'Tap Start Camera to scan a QR code.':'Connecting to secure Check-In…');
 }
+function clearPending(){if(pendingTimeout)clearTimeout(pendingTimeout);pendingTimeout=0;pending=null;}
+function submit(identifier,displayTarget){
+ const value=String(identifier||'').trim();
+ if(!value||value.length>300){if(displayTarget)displayTarget.textContent='Invalid Member ID or QR code.';return false;}
+ if(!bridgeReady){
+  const msg='Secure check-in connection unavailable. Open the Check-In app in a separate tab and sign in, then reload this scanner.';
+  if(displayTarget)displayTarget.textContent=msg;else status(msg,'error');return false;
+ }
+ if(pending)return false;
+ const id=++seq;pending={id,value};
+ if(displayTarget)displayTarget.textContent='Checking membership and payment…';
+ else status('Checking membership and payment…');
+ bridge.contentWindow.postMessage({app:'acrux',action:'checkin',id,identifier:value},'*');
+ pendingTimeout=setTimeout(()=>{
+  if(!pending||pending.id!==id)return;
+  clearPending();holdUntil=performance.now()+5000;
+  const msg='Check-in timed out. Ask the coach to check attendance before scanning again.';
+  if(displayTarget)displayTarget.textContent=msg;else status(msg,'error');
+ },25000);
+ return true;
+}
+window.addEventListener('message',event=>{
+ if(event.source!==bridge.contentWindow)return;
+ const data=event.data;
+ if(!data||data.app!=='acrux')return;
+ if(data.action==='ready'){
+  bridgeReady=true;
+  if(document.getElementById('qr').classList.contains('active')&&!active)status('Tap Start Camera to scan a QR code.');
+  return;
+ }
+ if(data.action!=='result'||!pending||data.id!==pending.id)return;
+ clearPending();
+ const result=data.result||{};
+ const kind=result.status==='Checked In'||result.status==='Already Checked In'?'success':
+   result.status==='Payment Required'?'error':(data.error?'error':'');
+ const msg=data.error?'Check-in error: '+data.error:
+   (result.name?result.name+' — ':'')+(result.status||'Check-In')+'. '+(result.message||'');
+ const onQR=document.getElementById('qr').classList.contains('active');
+ if(onQR){status(msg,kind);holdUntil=performance.now()+3500;}
+ else document.getElementById('member-status').textContent=msg;
+});
 document.querySelectorAll('[data-screen]').forEach(button=>button.addEventListener('click',()=>{
  if(button.dataset.screen==='guest'){window.location.assign(CHECKIN_URL+'?guest=1');return;}
  show(button.dataset.screen);
@@ -67,85 +97,55 @@ document.querySelectorAll('[data-screen]').forEach(button=>button.addEventListen
 document.querySelectorAll('.back').forEach(button=>button.addEventListener('click',()=>show('home')));
 function loop(now){
  if(!active)return;
- if(now-last>160&&video.readyState>=2){
-  last=now;
-  canvas.width=video.videoWidth;canvas.height=video.videoHeight;
-  if(canvas.width&&canvas.height){
+ if(now>=holdUntil&&!pending&&now-last>170&&video.readyState>=2){
+  last=now;canvas.width=video.videoWidth;canvas.height=video.videoHeight;
+  if(canvas.width&&canvas.height&&typeof jsQR==='function'){
    ctx.drawImage(video,0,0);
-   if(typeof jsQR==='function'){
-    const image=ctx.getImageData(0,0,canvas.width,canvas.height);
-    const code=jsQR(image.data,image.width,image.height,{inversionAttempts:'dontInvert'});
-    if(code){
-     stop();
-     status('QR recognized. Opening secure Check-In…','success');
-     if(!sendToCheckIn(code.data))status('Invalid QR code. Tap Start Camera to try again.','error');
-     return;
+   const image=ctx.getImageData(0,0,canvas.width,canvas.height);
+   const found=jsQR(image.data,image.width,image.height,{inversionAttempts:'dontInvert'});
+   if(found){
+    const value=String(found.data||'').trim();
+    // Avoid repeated check-in requests while the same card remains in view.
+    if(value&&!(value===previousCode&&now-previousAt<20000)){
+     previousCode=value;previousAt=now;
+     if(!submit(value))holdUntil=now+3000;
     }
-   }else{
-    status('QR decoder is unavailable. Check your internet connection.','error');
    }
-  }
+  }else if(typeof jsQR!=='function')status('QR decoder unavailable. Check internet connection.','error');
  }
  raf=requestAnimationFrame(loop);
 }
 async function start(){
  if(starting)return;
- stop();
- const currentRequest=++requestId;
- starting=true;
+ stop();const currentRequest=++requestId;starting=true;
  startButton.disabled=true;switchButton.disabled=true;
  status('Requesting '+(cameraFacing==='user'?'front':'back')+' camera…');
  try{
   if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia)throw new Error('Camera API unavailable');
   const acquired=await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:cameraFacing}},audio:false});
-  // A navigation or camera switch may have happened while permission was pending.
   if(currentRequest!==requestId||document.hidden||!document.getElementById('qr').classList.contains('active')){
-   acquired.getTracks().forEach(track=>track.stop());return;
+   acquired.getTracks().forEach(t=>t.stop());return;
   }
-  stream=acquired;
-  video.srcObject=stream;
-  await video.play();
+  stream=acquired;video.srcObject=stream;await video.play();
   if(currentRequest!==requestId)return;
-  active=true;
-  status('Camera ready. Hold a QR code in the frame.');
+  active=true;status(bridgeReady?'Camera ready. Scan a member.':'Camera ready. Connecting to secure Check-In…');
   raf=requestAnimationFrame(loop);
  }catch(error){
   if(currentRequest!==requestId)return;
   stop();
-  if(error.name==='NotAllowedError'||error.name==='PermissionDeniedError'){
-   status('Camera permission denied. Allow camera access for this website in your browser settings, then tap Start Camera.','error');
-  }else if(error.name==='NotReadableError'||error.name==='TrackStartError'){
-   status('Camera is busy. Close other apps using it, then tap Start Camera.','error');
-  }else{
-   status('Camera unavailable: '+(error.name||error.message)+'. Try again or switch camera.','error');
-  }
+  status(error.name==='NotAllowedError'?'Camera access denied for this site. Check browser permission.':
+    'Camera unavailable: '+(error.name||error.message),'error');
  }finally{
   if(currentRequest===requestId){starting=false;startButton.disabled=false;switchButton.disabled=false;}
  }
 }
 function updateSwitchLabel(){switchButton.textContent=cameraFacing==='user'?'Switch to Back Camera':'Switch to Front Camera';}
-switchButton.addEventListener('click',()=>{
- cameraFacing=cameraFacing==='user'?'environment':'user';
- updateSwitchLabel();
- start();
-});
-startButton.addEventListener('click',start);
-updateSwitchLabel();
+switchButton.addEventListener('click',()=>{cameraFacing=cameraFacing==='user'?'environment':'user';updateSwitchLabel();start();});
+startButton.addEventListener('click',start);updateSwitchLabel();
 document.getElementById('member-form').addEventListener('submit',event=>{
- event.preventDefault();
- if(!sendToCheckIn(document.getElementById('member-id').value))document.getElementById('member-status').textContent='Enter a valid Member ID.';
+ event.preventDefault();submit(document.getElementById('member-id').value,document.getElementById('member-status'));
 });
-document.getElementById('guest-form').addEventListener('submit',event=>{
- event.preventDefault();window.location.assign(CHECKIN_URL+'?guest=1');
-});
+document.getElementById('guest-form').addEventListener('submit',event=>{event.preventDefault();window.location.assign(CHECKIN_URL+'?guest=1');});
 window.addEventListener('pagehide',stop);
-window.addEventListener('pageshow',event=>{
- // Returning via browser Back can restore a cached page with a stopped camera.
- // Always restore a usable Start button without forcing a new permission prompt.
- if(event.persisted){
-  stop();navigating=false;
-  if(document.getElementById('qr').classList.contains('active'))status('Ready for the next member. Tap Start Camera.');
- }
-});
 })();
 </script></body></html>
