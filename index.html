@@ -39,6 +39,7 @@ document.body.appendChild(bridge);
 let bridgeReady=false,stream=null,raf=0,active=false,last=0,cameraFacing='user',requestId=0,starting=false;
 let pending=null,seq=0,holdUntil=0,previousCode='',previousAt=0;
 let pendingTimeout=0;
+let cameraErrorDetail='';
 function status(message,kind=''){scanStatus.textContent=message;scanStatus.className='message'+(kind?' '+kind:'');}
 function stop(){
  requestId++;active=false;cancelAnimationFrame(raf);raf=0;
@@ -72,6 +73,7 @@ function submit(identifier,displayTarget){
 }
 window.addEventListener('message',event=>{
  if(event.source!==bridge.contentWindow)return;
+ if(!/^https:\/\/(script\.google\.com|[a-z0-9-]+\.googleusercontent\.com)$/.test(event.origin))return;
  const data=event.data;
  if(!data||data.app!=='acrux')return;
  if(data.action==='ready'){
@@ -128,7 +130,7 @@ async function start(){
   }
   stream=acquired;video.srcObject=stream;await video.play();
   if(currentRequest!==requestId)return;
-  active=true;status(bridgeReady?'Camera ready. Scan a member.':'Camera ready. Connecting to secure Check-In…');
+  active=true;status(bridgeReady?'Camera ready. Scan a member.':'Camera ready, but secure Check-In is still connecting. Scanning will begin when connected.');
   raf=requestAnimationFrame(loop);
  }catch(error){
   if(currentRequest!==requestId)return;
