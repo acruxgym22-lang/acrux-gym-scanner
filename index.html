@@ -4,7 +4,7 @@
 <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>ACRUX Gym | Check-In</title>
 <style>
-:root{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color-scheme:dark}*{box-sizing:border-box}body{margin:0;min-height:100dvh;background:#172a38;color:#fff;display:flex;align-items:center;justify-content:center;padding:18px}.app{width:min(100%,480px);background:#243746;border:1px solid #486071;border-radius:22px;padding:28px 22px;box-shadow:0 16px 50px #0a182450;text-align:center}h1{letter-spacing:.12em;font-size:32px;margin:4px 0}.tag{font-size:12px;letter-spacing:.2em;color:#c5d4df;margin-bottom:32px}h2{margin:0 0 8px}p{color:#d4e1e8;line-height:1.5}.menu{display:grid;gap:13px;margin:24px 0}.choice{display:flex;align-items:center;gap:15px;text-align:left;background:#fff;color:#243746;padding:20px;border:0;border-radius:14px;width:100%;font:inherit;cursor:pointer}.choice .symbol{font-size:27px}.choice b{display:block;font-size:17px}.choice small{display:block;color:#526878;margin-top:5px}.choice .arrow{margin-left:auto;font-size:24px}.screen{display:none}.screen.active{display:block}.button{background:#e0edf2;color:#1b3444;border:0;border-radius:11px;padding:14px 20px;font:inherit;font-weight:700;cursor:pointer;width:100%;margin-top:12px}.button.alt{background:transparent;color:#fff;border:1px solid #8aa1b0}.field{text-align:left;margin:16px 0}.field label{display:block;margin-bottom:7px;font-size:14px}.field input,.field textarea{display:block;width:100%;background:#fff;color:#172a38;border:0;border-radius:9px;padding:13px;font:inherit}.field textarea{min-height:80px;resize:vertical}.preview{aspect-ratio:4/3;background:#08151e;border:2px solid #617a8c;border-radius:15px;overflow:hidden;margin:18px 0;position:relative}.preview video{width:100%;height:100%;object-fit:cover}.preview::after{content:"";position:absolute;inset:16% 20%;border:2px solid #b9e6db;border-radius:10px;pointer-events:none}.message{min-height:42px;overflow-wrap:anywhere}.note{font-size:12px;color:#bacbd4}.success{color:#a5f1c5}.error{color:#ffbdba}button:focus-visible,input:focus-visible,textarea:focus-visible{outline:3px solid #92d9ee;outline-offset:3px}
+:root{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color-scheme:dark}*{box-sizing:border-box}body{margin:0;min-height:100dvh;background:#172a38;color:#fff;display:flex;align-items:center;justify-content:center;padding:18px}.app{width:min(100%,480px);background:#243746;border:1px solid #486071;border-radius:22px;padding:28px 22px;box-shadow:0 16px 50px #0a182450;text-align:center}h1{letter-spacing:.12em;font-size:32px;margin:4px 0}.tag{font-size:12px;letter-spacing:.2em;color:#c5d4df;margin-bottom:32px}h2{margin:0 0 8px}p{color:#d4e1e8;line-height:1.5}.menu{display:grid;gap:13px;margin:24px 0}.choice{display:flex;align-items:center;gap:15px;text-align:left;background:#fff;color:#243746;padding:20px;border:0;border-radius:14px;width:100%;font:inherit;cursor:pointer}.choice .symbol{font-size:27px}.choice b{display:block;font-size:17px}.choice small{display:block;color:#526878;margin-top:5px}.choice .arrow{margin-left:auto;font-size:24px}.screen{display:none}.screen.active{display:block}.button{background:#e0edf2;color:#1b3444;border:0;border-radius:11px;padding:14px 20px;font:inherit;font-weight:700;cursor:pointer;width:100%;margin-top:12px}.button.alt{background:transparent;color:#fff;border:1px solid #8aa1b0}.button:disabled{opacity:.55;cursor:wait}.field{text-align:left;margin:16px 0}.field label{display:block;margin-bottom:7px;font-size:14px}.field input,.field textarea{display:block;width:100%;background:#fff;color:#172a38;border:0;border-radius:9px;padding:13px;font:inherit}.field textarea{min-height:80px;resize:vertical}.preview{aspect-ratio:4/3;background:#08151e;border:2px solid #617a8c;border-radius:15px;overflow:hidden;margin:18px 0;position:relative}.preview video{width:100%;height:100%;object-fit:cover}.preview::after{content:"";position:absolute;inset:16% 20%;border:2px solid #b9e6db;border-radius:10px;pointer-events:none}.message{min-height:42px;overflow-wrap:anywhere}.note{font-size:12px;color:#bacbd4}.success{color:#a5f1c5}.error{color:#ffbdba}button:focus-visible,input:focus-visible,textarea:focus-visible{outline:3px solid #92d9ee;outline-offset:3px}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js" defer></script>
 </head>
@@ -14,42 +14,138 @@
 <button class="choice" data-screen="qr"><span class="symbol">▣</span><span><b>Scan QR Code</b><small>Use your membership QR code</small></span><span class="arrow">›</span></button>
 <button class="choice" data-screen="member"><span class="symbol">#</span><span><b>Enter Member ID</b><small>Check in with your membership number</small></span><span class="arrow">›</span></button>
 <button class="choice" data-screen="guest"><span class="symbol">♙</span><span><b>Guest Check-In</b><small>Register for a Day Pass</small></span><span class="arrow">›</span></button></div></section>
-<section id="qr" class="screen"><h2>Scan QR Code</h2><p>Hold your QR code in front of the camera.</p><div class="preview"><video id="camera" autoplay playsinline muted></video></div><div id="scan-status" class="message" role="status">Camera starts when you tap Start Camera.</div><button id="start" class="button">Start Camera</button><button id="switch-camera" class="button alt" type="button">Switch to Back Camera</button><button class="button alt back">Back to Home</button></section>
-<section id="member" class="screen"><h2>Enter Member ID</h2><form id="member-form"><div class="field"><label for="member-id">Member ID</label><input id="member-id" autocomplete="off" required placeholder="Enter your Member ID"></div><button class="button" type="submit">Continue</button></form><p id="member-status" class="message" role="status"></p><button class="button alt back">Back to Home</button></section>
-<section id="guest" class="screen"><h2>Guest Check-In</h2><p>Guest visits use the regular Day Pass rate.</p><form id="guest-form"><div class="field"><label for="guest-name">Full Name</label><input id="guest-name" required autocomplete="name"></div><div class="field"><label for="guest-phone">Contact Number</label><input id="guest-phone" required autocomplete="tel" inputmode="tel"></div><div class="field"><label for="guest-address">Complete Address</label><textarea id="guest-address" required autocomplete="street-address"></textarea></div><button class="button" type="submit">Continue</button></form><p id="guest-status" class="message" role="status"></p><button class="button alt back">Back to Home</button></section>
+<section id="qr" class="screen"><h2>Scan QR Code</h2><p>Hold your QR code in front of the camera.</p><div class="preview"><video id="camera" autoplay playsinline muted></video></div><div id="scan-status" class="message" role="status">Camera starts when you tap Start Camera.</div><button id="start" class="button" type="button">Start Camera</button><button id="switch-camera" class="button alt" type="button">Switch to Back Camera</button><button class="button alt back" type="button">Back to Home</button></section>
+<section id="member" class="screen"><h2>Enter Member ID</h2><form id="member-form"><div class="field"><label for="member-id">Member ID</label><input id="member-id" autocomplete="off" required placeholder="Enter your Member ID"></div><button class="button" type="submit">Continue</button></form><p id="member-status" class="message" role="status"></p><button class="button alt back" type="button">Back to Home</button></section>
+<section id="guest" class="screen"><h2>Guest Check-In</h2><p>Guest visits use the regular Day Pass rate.</p><form id="guest-form"><div class="field"><label for="guest-name">Full Name</label><input id="guest-name" required autocomplete="name"></div><div class="field"><label for="guest-phone">Contact Number</label><input id="guest-phone" required autocomplete="tel" inputmode="tel"></div><div class="field"><label for="guest-address">Complete Address</label><textarea id="guest-address" required autocomplete="street-address"></textarea></div><button class="button" type="submit">Continue</button></form><p id="guest-status" class="message" role="status"></p><button class="button alt back" type="button">Back to Home</button></section>
 <p class="note">Check-in is verified through the authorized ACRUX Gym Check-In app. Guest Check-In opens the authorized registration form.</p>
 </main>
 <script>
 (()=>{
+'use strict';
 const CHECKIN_URL='https://script.google.com/macros/s/AKfycbzj9iNDLDoc7dzBCvcXsGBc4urLLwIfmDTzni_UgWP9GUTxMo9mrWidU9ahrUUevR1yTg/exec';
+const screens=[...document.querySelectorAll('.screen')];
+const video=document.getElementById('camera');
+const scanStatus=document.getElementById('scan-status');
+const startButton=document.getElementById('start');
+const switchButton=document.getElementById('switch-camera');
+const canvas=document.createElement('canvas');
+const ctx=canvas.getContext('2d',{willReadFrequently:true});
+let stream=null,raf=0,active=false,last=0,cameraFacing='user',requestId=0,starting=false,navigating=false;
+function status(message,kind=''){
+ scanStatus.textContent=message;
+ scanStatus.className='message'+(kind?' '+kind:'');
+}
+function stop(){
+ // Invalidate any pending getUserMedia request before it can attach a late stream.
+ requestId++;
+ active=false;
+ cancelAnimationFrame(raf);
+ raf=0;
+ if(stream){stream.getTracks().forEach(track=>track.stop());stream=null;}
+ video.pause();video.srcObject=null;
+ starting=false;
+ startButton.disabled=false;
+ switchButton.disabled=false;
+}
 function sendToCheckIn(identifier){
-  const value=String(identifier||'').trim();
-  if(!value||value.length>300){return false;}
-  // Full navigation, not iframe or cross-origin fetch.
-  window.location.assign(CHECKIN_URL+'?qr='+encodeURIComponent(value));
-  return true;
+ const value=String(identifier||'').trim();
+ if(!value||value.length>300)return false;
+ navigating=true;
+ window.location.assign(CHECKIN_URL+'?qr='+encodeURIComponent(value));
+ return true;
 }
-const screens=[...document.querySelectorAll('.screen')];const video=document.getElementById('camera');const scanStatus=document.getElementById('scan-status');let stream=null,raf=0,active=false,last=0;let cameraFacing='user';const canvas=document.createElement('canvas');const ctx=canvas.getContext('2d',{willReadFrequently:true});
-function stop(){active=false;cancelAnimationFrame(raf);if(stream)stream.getTracks().forEach(t=>t.stop());stream=null;video.srcObject=null}
-function show(id){stop();screens.forEach(s=>s.classList.toggle('active',s.id===id));if(id==='qr')scanStatus.textContent='Tap Start Camera to scan a QR code.'}
-document.querySelectorAll('[data-screen]').forEach(b=>b.addEventListener('click',()=>{if(b.dataset.screen==='guest'){window.location.assign(CHECKIN_URL+'?guest=1');return;}show(b.dataset.screen)}));document.querySelectorAll('.back').forEach(b=>b.addEventListener('click',()=>show('home')));
-function loop(now){if(!active)return;if(now-last>160&&video.readyState>=2){last=now;canvas.width=video.videoWidth;canvas.height=video.videoHeight;if(canvas.width&&canvas.height){ctx.drawImage(video,0,0);if(typeof jsQR==='function'){const image=ctx.getImageData(0,0,canvas.width,canvas.height);const code=jsQR(image.data,image.width,image.height,{inversionAttempts:'dontInvert'});if(code){stop();scanStatus.textContent='QR recognized. Opening secure Check-In…';scanStatus.className='message success';if(!sendToCheckIn(code.data)){scanStatus.textContent='Invalid QR code. Please try again.';scanStatus.className='message error'}return}}else{scanStatus.textContent='QR decoder is unavailable. Check your internet connection.';scanStatus.className='message error'}}}raf=requestAnimationFrame(loop)}
+function show(id){
+ stop();
+ navigating=false;
+ screens.forEach(screen=>screen.classList.toggle('active',screen.id===id));
+ if(id==='qr')status('Tap Start Camera to scan a QR code.');
+}
+document.querySelectorAll('[data-screen]').forEach(button=>button.addEventListener('click',()=>{
+ if(button.dataset.screen==='guest'){window.location.assign(CHECKIN_URL+'?guest=1');return;}
+ show(button.dataset.screen);
+}));
+document.querySelectorAll('.back').forEach(button=>button.addEventListener('click',()=>show('home')));
+function loop(now){
+ if(!active)return;
+ if(now-last>160&&video.readyState>=2){
+  last=now;
+  canvas.width=video.videoWidth;canvas.height=video.videoHeight;
+  if(canvas.width&&canvas.height){
+   ctx.drawImage(video,0,0);
+   if(typeof jsQR==='function'){
+    const image=ctx.getImageData(0,0,canvas.width,canvas.height);
+    const code=jsQR(image.data,image.width,image.height,{inversionAttempts:'dontInvert'});
+    if(code){
+     stop();
+     status('QR recognized. Opening secure Check-In…','success');
+     if(!sendToCheckIn(code.data))status('Invalid QR code. Tap Start Camera to try again.','error');
+     return;
+    }
+   }else{
+    status('QR decoder is unavailable. Check your internet connection.','error');
+   }
+  }
+ }
+ raf=requestAnimationFrame(loop);
+}
 async function start(){
-  stop();scanStatus.className='message';scanStatus.textContent='Requesting '+(cameraFacing==='user'?'front':'back')+' camera…';
-  try {
-    // Stop the previous camera before acquiring the next one (important on tablets).
-    stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:cameraFacing}},audio:false});
-    video.srcObject=stream;await video.play();active=true;
-    scanStatus.textContent='Camera ready. Hold a QR code in the frame.';
-    raf=requestAnimationFrame(loop);
-  } catch(e) {stop();scanStatus.textContent='Camera unavailable: '+e.name+'. Try switching camera or check browser permissions.';scanStatus.className='message error';}
+ if(starting)return;
+ stop();
+ const currentRequest=++requestId;
+ starting=true;
+ startButton.disabled=true;switchButton.disabled=true;
+ status('Requesting '+(cameraFacing==='user'?'front':'back')+' camera…');
+ try{
+  if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia)throw new Error('Camera API unavailable');
+  const acquired=await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:cameraFacing}},audio:false});
+  // A navigation or camera switch may have happened while permission was pending.
+  if(currentRequest!==requestId||document.hidden||!document.getElementById('qr').classList.contains('active')){
+   acquired.getTracks().forEach(track=>track.stop());return;
+  }
+  stream=acquired;
+  video.srcObject=stream;
+  await video.play();
+  if(currentRequest!==requestId)return;
+  active=true;
+  status('Camera ready. Hold a QR code in the frame.');
+  raf=requestAnimationFrame(loop);
+ }catch(error){
+  if(currentRequest!==requestId)return;
+  stop();
+  if(error.name==='NotAllowedError'||error.name==='PermissionDeniedError'){
+   status('Camera permission denied. Allow camera access for this website in your browser settings, then tap Start Camera.','error');
+  }else if(error.name==='NotReadableError'||error.name==='TrackStartError'){
+   status('Camera is busy. Close other apps using it, then tap Start Camera.','error');
+  }else{
+   status('Camera unavailable: '+(error.name||error.message)+'. Try again or switch camera.','error');
+  }
+ }finally{
+  if(currentRequest===requestId){starting=false;startButton.disabled=false;switchButton.disabled=false;}
+ }
 }
-function updateSwitchLabel(){document.getElementById('switch-camera').textContent=cameraFacing==='user'?'Switch to Back Camera':'Switch to Front Camera';}
-document.getElementById('switch-camera').addEventListener('click',async()=>{cameraFacing=cameraFacing==='user'?'environment':'user';updateSwitchLabel();await start();});
+function updateSwitchLabel(){switchButton.textContent=cameraFacing==='user'?'Switch to Back Camera':'Switch to Front Camera';}
+switchButton.addEventListener('click',()=>{
+ cameraFacing=cameraFacing==='user'?'environment':'user';
+ updateSwitchLabel();
+ start();
+});
+startButton.addEventListener('click',start);
 updateSwitchLabel();
-document.getElementById('start').addEventListener('click',start);
-document.getElementById('member-form').addEventListener('submit',e=>{e.preventDefault();if(!sendToCheckIn(document.getElementById('member-id').value)){document.getElementById('member-status').textContent='Enter a valid Member ID.'}});
-document.getElementById('guest-form').addEventListener('submit',e=>{e.preventDefault();window.location.assign(CHECKIN_URL+'?guest=1');});
+document.getElementById('member-form').addEventListener('submit',event=>{
+ event.preventDefault();
+ if(!sendToCheckIn(document.getElementById('member-id').value))document.getElementById('member-status').textContent='Enter a valid Member ID.';
+});
+document.getElementById('guest-form').addEventListener('submit',event=>{
+ event.preventDefault();window.location.assign(CHECKIN_URL+'?guest=1');
+});
 window.addEventListener('pagehide',stop);
+window.addEventListener('pageshow',event=>{
+ // Returning via browser Back can restore a cached page with a stopped camera.
+ // Always restore a usable Start button without forcing a new permission prompt.
+ if(event.persisted){
+  stop();navigating=false;
+  if(document.getElementById('qr').classList.contains('active'))status('Ready for the next member. Tap Start Camera.');
+ }
+});
 })();
 </script></body></html>
