@@ -114,5 +114,8 @@ document.getElementById('member-form').addEventListener('submit',event=>{
 });
 document.getElementById('guest-form').addEventListener('submit',event=>{event.preventDefault();window.location.assign(CHECKIN_URL+'?guest=1');});
 window.addEventListener('pagehide',stop);
+ if(new URLSearchParams(window.location.search).get('scan')==='1'){
+  show('qr');
+}
 })();
 </script></body></html>
