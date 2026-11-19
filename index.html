@@ -73,13 +73,14 @@ function show(id){
  stop();screens.forEach(s=>s.classList.toggle('active',s.id===id));
  if(id==='qr')status('Tap Start Camera to scan a QR code.');
 }
-function submit(identifier,displayTarget){
+function submit(identifier,displayTarget,method='qr'){
  const value=String(identifier||'').trim();
  if(!value||value.length>300){
   if(displayTarget)displayTarget.textContent='Invalid Member ID or QR code.';
   else status('Invalid Member ID or QR code.','error');
   return false;
  }
+ try { sessionStorage.setItem('acruxCheckinReturn',method); } catch(e) {}
  stop();
  if(displayTarget)displayTarget.textContent='Opening authorized check-in…';
  else status('QR detected. Opening authorized check-in…');
@@ -89,7 +90,7 @@ function submit(identifier,displayTarget){
  return true;
 }
 document.querySelectorAll('[data-screen]').forEach(button=>button.addEventListener('click',()=>{
- if(button.dataset.screen==='guest'){window.location.assign(CHECKIN_URL+'?guest=1');return;}
+ if(button.dataset.screen==='guest'){try{sessionStorage.setItem('acruxCheckinReturn','guest');}catch(e){} window.location.assign(CHECKIN_URL+'?guest=1');return;}
  show(button.dataset.screen);
 }));
 document.querySelectorAll('.back').forEach(button=>button.addEventListener('click',()=>show('home')));
@@ -141,16 +142,23 @@ function updateSwitchLabel(){switchButton.textContent=cameraFacing==='user'?'Swi
 switchButton.addEventListener('click',()=>{cameraFacing=cameraFacing==='user'?'environment':'user';updateSwitchLabel();start();});
 startButton.addEventListener('click',start);updateSwitchLabel();
 document.getElementById('member-form').addEventListener('submit',event=>{
- event.preventDefault();submit(document.getElementById('member-id').value,document.getElementById('member-status'));
+ event.preventDefault();submit(document.getElementById('member-id').value,document.getElementById('member-status'),'member');
 });
-document.getElementById('guest-form').addEventListener('submit',event=>{event.preventDefault();window.location.assign(CHECKIN_URL+'?guest=1');});
+document.getElementById('guest-form').addEventListener('submit',event=>{event.preventDefault();try{sessionStorage.setItem('acruxCheckinReturn','guest');}catch(e){} window.location.assign(CHECKIN_URL+'?guest=1');});
 window.addEventListener('pagehide',stop);
  if(new URLSearchParams(window.location.search).get('scan')==='1'){
-  // Returning from a completed check-in: attempt to resume scanning directly.
-  // Safari may require a fresh user gesture; the existing Start Camera button remains a fallback.
-  show('qr');
-  status('Preparing camera for the next member…');
-  start();
+  // Keep the original method across the Google Apps Script round trip.
+  let method='qr';
+  try { method=sessionStorage.getItem('acruxCheckinReturn')||'qr'; sessionStorage.removeItem('acruxCheckinReturn'); } catch(e) {}
+  // Avoid keeping the reset flag on reload.
+  try { history.replaceState(null,'',window.location.pathname); } catch(e) {}
+  if(method==='member'||method==='guest'){
+    show('home');
+  } else {
+    show('qr');
+    status('Preparing camera for the next member…');
+    start(); // Safari may require the existing Start Camera button.
+  }
 }
 })();
 </script></body></html>
