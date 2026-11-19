@@ -115,7 +115,10 @@ document.getElementById('member-form').addEventListener('submit',event=>{
 document.getElementById('guest-form').addEventListener('submit',event=>{event.preventDefault();window.location.assign(CHECKIN_URL+'?guest=1');});
 window.addEventListener('pagehide',stop);
  if(new URLSearchParams(window.location.search).get('scan')==='1'){
+  // Return from Apps Script: show Start Camera without requesting permission automatically.
   show('qr');
+  status('Ready for the next member. Tap Start Camera.');
+  startButton.focus();
 }
 })();
 </script></body></html>
